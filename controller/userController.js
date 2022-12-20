@@ -2,6 +2,7 @@ const User = require('../models/userModel')
 const asyncExpressHandler = require('express-async-handler');
 const { generateToken } = require('../config/jsonWebToken');
 const validateId = require('../utils/validateMongoDBId');
+const { generateRefreshToken } = require('../config/refreshToken');
 
 const createUser = asyncExpressHandler(async (req, res) => {
     const email = req.body.email
@@ -18,6 +19,16 @@ const loginUserCntroller = asyncExpressHandler(async (req, res) => {
     const { email, password } = req.body
     const findUser = await User.findOne({ email })
     if (findUser && await findUser.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findUser?._id)
+        const updateUser = await User.findByIdAndUpdate(findUser.id, {
+            refreshToken: refreshToken
+        }, {
+            new: true
+        })
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000
+        })
         res.json({
             _id: findUser?._id,
             firstname: findUser?.firstname,

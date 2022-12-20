@@ -6,11 +6,14 @@ const dotenv = require('dotenv').config()
 const PORT = process.env.PORT || 4000
 const bodyParser = require('body-parser')
 const { errorHandler, notFound } = require('./middlewares/errorHandler')
+const cookieParse = require('cookie-parser')
+dBConnect()
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(cookieParse())
 
-dBConnect()
+
 
 app.use('/api/user',authRoutes)
 
