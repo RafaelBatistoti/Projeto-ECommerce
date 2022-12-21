@@ -47,7 +47,7 @@ const loginUserCntroller = asyncExpressHandler(async (req, res) => {
 const getAllUsers = asyncExpressHandler(async (req, res) => {
     try {
         const getUsers = await User.find()
-        res.json(getUsers)   
+        res.json(getUsers)
     } catch (err) {
         throw new Error(`Error to find all Users: ${err}`)
     }
@@ -81,7 +81,7 @@ const hendlerRefreshToken = asyncExpressHandler(async (req, res) => {
     const cookie = req.cookies
     if (!cookie?.refreshToken) throw new Error(`No refresh token in cookies`)
     const refreshToken = cookie.refreshToken
-    const user = await User.findOne({refreshToken})
+    const user = await User.findOne({ refreshToken })
     if (!user) throw new Error(`No refresh token present in db or not matched`)
     jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
         if (err || user.id !== decoded.id) {
@@ -90,6 +90,27 @@ const hendlerRefreshToken = asyncExpressHandler(async (req, res) => {
         const accessToken = generateToken(user?._id)
         res.json({ accessToken })
     })
+})
+
+const logout = asyncExpressHandler(async (req, res) => {
+    const cookie = req.cookies
+    if (!cookie?.refreshToken) throw new Error(`No refresh token in cookies`)
+    const refreshToken = cookie.refreshToken
+    const user = await User.findOne({ refreshToken })
+    if (!user) {
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: true
+        })
+    }
+    await User.findOneAndUpdate(refreshToken, {
+        refreshToken: "",
+    })
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true
+    })
+    res.sendStatus(204)
 })
 
 const updateUser = asyncExpressHandler(async (req, res) => {
@@ -165,7 +186,8 @@ module.exports = {
     updateUser,
     blockUser,
     unBlockuser,
-    hendlerRefreshToken
+    hendlerRefreshToken,
+    logout
 
 };
 
