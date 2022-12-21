@@ -3,6 +3,8 @@ const asyncExpressHandler = require('express-async-handler');
 const { generateToken } = require('../config/jsonWebToken');
 const validateId = require('../utils/validateMongoDBId');
 const { generateRefreshToken } = require('../config/refreshToken');
+const jwt = require('jsonwebtoken');
+
 
 const createUser = asyncExpressHandler(async (req, res) => {
     const email = req.body.email
@@ -45,12 +47,7 @@ const loginUserCntroller = asyncExpressHandler(async (req, res) => {
 const getAllUsers = asyncExpressHandler(async (req, res) => {
     try {
         const getUsers = await User.find()
-        if (getUsers) {
-            res.json('There is not Users registred!')
-        } else {
-
-            res.json(getUsers)
-        }
+        res.json(getUsers)   
     } catch (err) {
         throw new Error(`Error to find all Users: ${err}`)
     }
@@ -78,6 +75,21 @@ const deleteUser = asyncExpressHandler(async (req, res) => {
     } catch (err) {
         throw new Error(`Error to delete the User: ${err}`)
     }
+})
+
+const hendlerRefreshToken = asyncExpressHandler(async (req, res) => {
+    const cookie = req.cookies
+    if (!cookie?.refreshToken) throw new Error(`No refresh token in cookies`)
+    const refreshToken = cookie.refreshToken
+    const user = await User.findOne({refreshToken})
+    if (!user) throw new Error(`No refresh token present in db or not matched`)
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err || user.id !== decoded.id) {
+            throw new Error(`There is something wrong with refresh token`)
+        }
+        const accessToken = generateToken(user?._id)
+        res.json({ accessToken })
+    })
 })
 
 const updateUser = asyncExpressHandler(async (req, res) => {
@@ -152,7 +164,8 @@ module.exports = {
     deleteUser,
     updateUser,
     blockUser,
-    unBlockuser
+    unBlockuser,
+    hendlerRefreshToken
 
 };
 

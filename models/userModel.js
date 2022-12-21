@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		unique: true,
 	},
+
 	password: {
 		type: String,
 		required: true,
@@ -45,7 +46,7 @@ const userSchema = new mongoose.Schema({
 	},
 	address: [{ type: mongoose.Schema.Types.ObjectId, ref: 'address' }],
 	wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-	refreshtoken: {
+	refreshToken: {
 		type: String
 	}
 
