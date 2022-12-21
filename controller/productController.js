@@ -16,13 +16,64 @@ const getSigleProduct = expressAsyncHandler(async (req, res) => {
     const { id } = req.params
     try {
         const findProduct = await Product.findById(id)
+        if (findProduct === null) throw new Error(`There is no user for this id. Insert a valid ID`)
         res.json(findProduct)
     } catch (err) {
         throw new Error(`Was not possible get the product. Check the message: ${err}`)
     }
 })
 
+const deleteProduct = expressAsyncHandler(async (req, res) => {
+    const { id } = req.params
+    try {
+        const deleteItem = await Product.findByIdAndDelete(id)
+        if (deleteItem === null) throw new Error(`There is no Item for this id. Insert a valid ID`)
+        res.json(deleteItem)
+    } catch (err) {
+        throw new Error(`Was not possible delete the product. Check the message: ${err}`)
+    }
+})
+
+const getAllProducts = expressAsyncHandler(async (req, res) => {
+    try {
+        const getAllItens = await Product.find()
+        res.json(getAllItens)
+    } catch (err) {
+        throw new Error(`Error to find all Users: ${err}`)
+    }
+})
+
+
+const updateProduct = expressAsyncHandler(async (req, res) => {
+    const { id } = req.params
+    try {
+        const upProduct = await Product.findByIdAndUpdate(id, {
+            title: req?.body?.title,
+            slug: req?.body?.slug,
+            description: req?.body?.description,
+            price: req?.body?.price,
+            quantity: req?.body?.quantity,
+        },
+            {
+                new: true
+            })
+        res.json(upProduct)
+    } catch (err) {
+        const {title} = req.body.title
+        const findProduct = await Product.findOne({ title: title })
+        if (findProduct) {
+            throw new Error(`Error to updated the product. This Item already exists: ${err}`)
+        } else {
+
+            throw new Error(`Error to updated the product: ${err}`)
+        }
+    }
+})
+
 module.exports = {
     createProduct,
-    getSigleProduct
+    getSigleProduct,
+    deleteProduct,
+    updateProduct,
+    getAllProducts
 };
