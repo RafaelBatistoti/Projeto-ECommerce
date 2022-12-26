@@ -55,6 +55,12 @@ const updateProduct = expressAsyncHandler(async (req, res) => {
             req.body.slug = slugify(req.body.title)
             req.body.title = slugify(req.body.title)
         }
+
+        const title = slugify(req.body.title)
+        const findProduct = await Product.findOne({ title })
+        if (findProduct) {
+            throw new Error(`Error to updated the product. This Item already exists`)
+        }
         const upProduct = await Product.findByIdAndUpdate(id, {
             title: req?.body?.title,
             slug: req?.body?.slug,
@@ -65,17 +71,12 @@ const updateProduct = expressAsyncHandler(async (req, res) => {
             {
                 new: true
             })
-            
-        res.json(upProduct)
-    } catch (err) {
-        const { title } = req.body.title
-        const findProduct = await Product.findOne({ title: title })
-        if (findProduct) {
-            throw new Error(`Error to updated the product. This Item already exists: ${err}`)
-        } else {
 
-            throw new Error(`Error to updated the product: ${err}`)
-        }
+        res.json(upProduct)
+
+    } catch (err) {
+
+        throw new Error(`Error to updated the product: ${err}`)
     }
 })
 
