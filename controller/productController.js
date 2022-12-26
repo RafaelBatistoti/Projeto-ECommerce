@@ -51,6 +51,10 @@ const getAllProducts = expressAsyncHandler(async (req, res) => {
 const updateProduct = expressAsyncHandler(async (req, res) => {
     const { id } = req.params
     try {
+        if (req.body.title) {
+            req.body.slug = slugify(req.body.title)
+            req.body.title = slugify(req.body.title)
+        }
         const upProduct = await Product.findByIdAndUpdate(id, {
             title: req?.body?.title,
             slug: req?.body?.slug,
@@ -61,6 +65,7 @@ const updateProduct = expressAsyncHandler(async (req, res) => {
             {
                 new: true
             })
+            
         res.json(upProduct)
     } catch (err) {
         const { title } = req.body.title
