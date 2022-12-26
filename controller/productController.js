@@ -1,9 +1,13 @@
 const expressAsyncHandler = require('express-async-handler')
 const Product = require('../models/productModel')
+const slugify = require('slugify');
 
 const createProduct = expressAsyncHandler(async (req, res) => {
 
     try {
+        if (req.body.title) {
+            req.body.slug = slugify(req.body.title)
+        }
         const newProduct = await Product.create(req.body)
         res.json(newProduct)
 
@@ -39,7 +43,7 @@ const getAllProducts = expressAsyncHandler(async (req, res) => {
         const getAllItens = await Product.find()
         res.json(getAllItens)
     } catch (err) {
-        throw new Error(`Error to find all Users: ${err}`)
+        throw new Error(`Error to find all products: ${err}`)
     }
 })
 
@@ -59,7 +63,7 @@ const updateProduct = expressAsyncHandler(async (req, res) => {
             })
         res.json(upProduct)
     } catch (err) {
-        const {title} = req.body.title
+        const { title } = req.body.title
         const findProduct = await Product.findOne({ title: title })
         if (findProduct) {
             throw new Error(`Error to updated the product. This Item already exists: ${err}`)
