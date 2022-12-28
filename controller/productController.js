@@ -14,6 +14,7 @@ const createProduct = expressAsyncHandler(async (req, res) => {
     } catch (err) {
         throw new Error(`Was not possible create the product. Check the message: ${err}`)
     }
+
 })
 
 const getSigleProduct = expressAsyncHandler(async (req, res) => {
@@ -38,10 +39,28 @@ const deleteProduct = expressAsyncHandler(async (req, res) => {
     }
 })
 
+
+/*
+ lte -> Less than or equal
+ gte -> Greater than or equal
+ lt -> Less than
+ gt -> Greater than
+*/
+
 const getAllProducts = expressAsyncHandler(async (req, res) => {
     try {
-        const getAllItens = await Product.find()
-        res.json(getAllItens)
+
+        const queryObj = { ...req.query }
+        const excludesFields = ['page', 'sort', 'limit', 'fields']
+        excludesFields.forEach((el) => delete queryObj[el])
+
+        let queryStr = JSON.stringify(queryObj)
+        queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`)
+
+        const query = await Product.find(JSON.parse(queryStr))
+        const product = await query
+
+        res.json(product)
     } catch (err) {
         throw new Error(`Error to find all products: ${err}`)
     }
